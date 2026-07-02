@@ -1,4 +1,2 @@
 .cpcache/
-.nrepl-port
-*.jar
 target/
