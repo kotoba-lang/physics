@@ -1,41 +1,19 @@
 (ns kotoba.physics
-  "hiccup for collision — layers + a collision matrix as EDN data. Which categories collide
-   with which (and their radii) is data: store it as datoms, fork it, retune without code.
+  "DEDUP NOTICE (2026-07-09, see CHANGELOG.md): this namespace used to carry its own copy of the
+   layer/collision-matrix implementation. Diffing it against kotoba-lang/webgpu's internal
+   `kami.physics` (normalizing the `kotoba.*`→`kami.*` namespace prefix) found the two were
+   byte-identical — no bug-fix or feature divergence either direction, just a duplicate that
+   could have silently drifted apart at any future edit (the same abandoned clj-wgsl Phase-4
+   split-migration + independent 'restore' commits caused real drift for kotoba-lang/sprite-gpu,
+   kotoba-lang/gpu, and kotoba-lang/webgl — this pair got lucky, but the risk was identical).
 
-     {:matrix {:player #{:bot} :bot #{:player :bot}}
-      :radius {:player 35.0 :bot 35.0}}
+   `kami.physics` (kotoba-lang/webgpu) is now canonical, and this namespace is a thin re-export
+   of it — same public API, always in sync, no more risk of silent drift. If you're vendoring
+   this repo standalone, requiring `kotoba.physics` still works exactly as before; the
+   implementation just lives one hop away now."
+  (:require [kami.physics :as impl]))
 
-   Pure + cross-platform (.cljc): `collides?` answers the matrix; `separate` resolves
-   overlapping pairs into position deltas a host applies. The same EDN drives any engine.")
-
-(def default-layers
-  {:matrix {:player #{:bot} :bot #{:player :bot}}
-   :radius {:player 34.0 :bot 34.0}})
-
-(defn collides?
-  "Do layers a and b collide under this config? Symmetric — either direction in the matrix."
-  [cfg a b]
-  (boolean (or (contains? (get-in cfg [:matrix a]) b)
-               (contains? (get-in cfg [:matrix b]) a))))
-
-(defn radius [cfg layer] (get-in cfg [:radius layer] 1.0))
-
-(defn- sqrt [x] #?(:clj (Math/sqrt x) :cljs (js/Math.sqrt x)))
-
-(defn separate
-  "Resolve overlapping colliding pairs. ents: [{:id :layer :x :y} …]. Returns {id [dx dy]}
-   — the position nudge to push each entity out of overlap (half each)."
-  [cfg ents]
-  (let [v (vec ents) n (count v) deltas (atom {})]
-    (dotimes [i n]
-      (doseq [j (range (inc i) n)]
-        (let [a (v i) b (v j)]
-          (when (collides? cfg (:layer a) (:layer b))
-            (let [dx (- (:x a) (:x b)) dy (- (:y a) (:y b))
-                  d (sqrt (+ (* dx dx) (* dy dy)))
-                  mind (+ (radius cfg (:layer a)) (radius cfg (:layer b)))]
-              (when (and (> d 1e-4) (< d mind))
-                (let [push (* 0.5 (- mind d)) ux (/ dx d) uy (/ dy d)]
-                  (swap! deltas update (:id a) (fn [[x y]] [(+ (or x 0) (* ux push)) (+ (or y 0) (* uy push))]))
-                  (swap! deltas update (:id b) (fn [[x y]] [(- (or x 0) (* ux push)) (- (or y 0) (* uy push))])))))))))
-    @deltas))
+(def default-layers "See kami.physics/default-layers." impl/default-layers)
+(def collides? "See kami.physics/collides?." impl/collides?)
+(def radius "See kami.physics/radius." impl/radius)
+(def separate "See kami.physics/separate." impl/separate)
