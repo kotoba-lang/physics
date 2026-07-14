@@ -1,7 +1,14 @@
 (ns kotoba.physics
   "Facade re-exporting `kami.physics` (SSoT in this package, ADR-2607102200 addendum 7)."
   (:require [kami.physics :as impl]
-            [kotoba.physics.contract :as contract]))
+            [kotoba.physics.contract :as contract]
+            [kotoba.physics.vehicle :as vehicle]))
+
+(def vehicle-document vehicle/document)
+(def vehicle-entity vehicle/entity)
+(def vehicle-scene vehicle/scene)
+(def backend-registry vehicle/registry)
+(def select-backend vehicle/select-backend)
 
 (def default-layers impl/default-layers)
 (def collides?      impl/collides?)

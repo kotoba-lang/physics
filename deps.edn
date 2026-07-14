@@ -1,6 +1,6 @@
 ;; kotoba-lang/physics — kami.physics SSoT (collision layers/matrix as EDN).
 ;; Extracted from webgpu (ADR-2607102200 addendum 7). Pure .cljc.
-{:paths ["src"]
+{:paths ["src" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
         org.clojure/clojurescript {:mvn/version "1.11.132"}}
  :aliases
